@@ -81,13 +81,33 @@ void PlayerList::placeNewPlayer(Connection *connection, shared_ptr<ServerPlayer>
 {
 	CompoundTag *playerTag = load(player);
 
+    INetworkPlayer *networkPlayer = connection->getSocket()->getPlayer();
+
+	
+	#ifdef _WINDOWS64 // Attempt fallback save load
+    if (playerTag == NULL)
+    {
+		// The check below should prevent this from happening on a dedicated server (IsHost)
+        if (networkPlayer != NULL && networkPlayer->IsHost() || networkPlayer == NULL) 
+        {
+            NetworkPlayerXbox *npx = (NetworkPlayerXbox *)networkPlayer;
+            IQNetPlayer *qp = npx->GetQNetPlayer();
+			// Hardcoded as this is a long term legacy failsafe load!
+            playerTag = playerIo->loadPlayerDataTag((PlayerUID)(0xe000d45248242f2e + qp->m_smallId));
+            if (playerTag != NULL)
+            {
+                player->load(playerTag);
+            }
+        }
+    }
+	#endif
+
 	bool newPlayer = playerTag == NULL;
 
 	player->setLevel(server->getLevel(player->dimension));
 	player->gameMode->setLevel((ServerLevel *)player->level);
 
 	// Make sure these privileges are always turned off for the host player
-	INetworkPlayer *networkPlayer = connection->getSocket()->getPlayer();
 	if(networkPlayer != NULL && networkPlayer->IsHost())
 	{
 		player->enableAllPlayerPrivileges(true);			
