@@ -40,6 +40,25 @@ namespace Win64NameXuid
 
 		return (PlayerUID)hash;
 	}
+
+	/**
+	 * Creates a completely random PlayerUID while also keeping itself away from the legacy values
+	 * 
+	 * @return Random PlayerUID within valid ranges
+	 */
+    inline PlayerUID GenerateRandomPlayerUID()
+    {
+        unsigned __int64 hash = ((unsigned __int64)rand() << 32) | (unsigned __int64)rand();
+
+        // Namespace the hash away from legacy smallId-based values.
+        hash ^= 0x9E3779B97F4A7C15ULL;
+        hash |= 0x8000000000000000ULL;
+        if (hash == (unsigned __int64)INVALID_XUID)
+        {
+            hash ^= 0x0100000000000001ULL;
+        }
+        return (PlayerUID)hash;
+    }
 }
 
 #endif

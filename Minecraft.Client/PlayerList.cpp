@@ -539,18 +539,6 @@ shared_ptr<ServerPlayer> PlayerList::getPlayerForLogin(PendingConnection *pendin
 	player->gameMode->player = player; // 4J added as had to remove this assignment from ServerPlayer ctor
 	player->setXuid( xuid ); // 4J Added
 	player->setOnlineXuid( onlineXuid ); // 4J Added
-#ifdef _WINDOWS64
-	{
-		PlayerUID persistentXuid = Win64NameXuid::ResolvePersistentXuidFromName(userName);
-		player->setXuid(persistentXuid);
-
-		INetworkPlayer* np = pendingConnection->connection->getSocket()->getPlayer();
-		if (np != NULL)
-		{
-			player->setOnlineXuid(np->GetUID());
-		}
-	}
-#endif
 	// Work out the base server player settings
 	INetworkPlayer *networkPlayer = pendingConnection->connection->getSocket()->getPlayer();
 	if(networkPlayer != NULL && !networkPlayer->IsHost())

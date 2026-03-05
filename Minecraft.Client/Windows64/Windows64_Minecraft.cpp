@@ -4,6 +4,7 @@
 #include "stdafx.h"
 
 #include <assert.h>
+#include <fstream>
 #include <iostream>
 #include <ShellScalingApi.h>
 #include <shellapi.h>
@@ -41,6 +42,7 @@
 #include "..\..\Minecraft.World\compression.h"
 #include "..\..\Minecraft.World\OldChunkStorage.h"
 #include "Network\WinsockNetLayer.h"
+#include "Windows64\Windows64_NameXuid.h"
 
 #include "Xbox/resource.h"
 
@@ -92,6 +94,7 @@ float g_iAspectRatio = static_cast<float>(g_iScreenWidth) / g_iScreenHeight;
 
 char g_Win64Username[17] = { 0 };
 wchar_t g_Win64UsernameW[17] = { 0 };
+PlayerUID g_Win64PlayerUID = NULL;
 
 // Fullscreen toggle state
 static bool g_isFullscreen = false;
@@ -1207,6 +1210,36 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
         }
         fclose(f);
     }
+
+	// Load PlayerUID from file
+    const char *uidFilePath = "uid.dat";
+    PlayerUID uid = 0;
+
+    // Try to read UID from file if it exists
+    std::ifstream uidReadableFile(uidFilePath, std::ios::binary);
+    if (uidReadableFile.is_open())
+    {
+        uidReadableFile.read(reinterpret_cast<char *>(&uid), sizeof(PlayerUID));
+        if (uidReadableFile.gcount() == sizeof(PlayerUID) && uid != (PlayerUID)INVALID_XUID)
+        {
+            uidReadableFile.close();
+            return uid;
+        }
+        uidReadableFile.close();
+    }
+
+    // Doesn't exist, so let's write it
+    uid = Win64NameXuid::GenerateRandomPlayerUID();
+
+    std::ofstream uidWriteFile(filePath, std::ios::binary);
+    if (uidWriteFile.is_open())
+    {
+        uidWriteFile.write(reinterpret_cast<const char *>(&uid), sizeof(PlayerUID));
+        uidWriteFile.close();
+    }
+
+    g_Win64PlayerUID = uid;
+    
 
 	// Load stuff from launch options, including username
 	Win64LaunchOptions launchOptions = ParseLaunchOptions();

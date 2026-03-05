@@ -201,7 +201,7 @@ DWORD IQNetPlayer::GetCurrentRtt() { return 0; }
 bool IQNetPlayer::IsHost() { return m_isHostPlayer; }
 bool IQNetPlayer::IsGuest() { return false; }
 bool IQNetPlayer::IsLocal() { return !m_isRemote; }
-PlayerUID IQNetPlayer::GetXuid() { return (PlayerUID)(0xe000d45248242f2e + m_smallId); } // todo: restore to INVALID_XUID once saves support this
+PlayerUID IQNetPlayer::GetXuid() { return m_playerUID; }
 LPCWSTR IQNetPlayer::GetGamertag() { return m_gamertag; }
 int IQNetPlayer::GetSessionIndex() { return m_smallId; }
 bool IQNetPlayer::IsTalking() { return false; }
@@ -292,13 +292,6 @@ IQNetPlayer* IQNet::GetPlayerByXuid(PlayerUID xuid)
 
 		if (m_player[i].GetXuid() == xuid)
 			return &m_player[i];
-
-		// For Windows 64, NameBase XUID is used.
-#ifdef _WINDOWS64
-		PlayerUID nameXuid = Win64NameXuid::ResolvePersistentXuidFromName(m_player[i].GetGamertag());
-		if (nameXuid == xuid)
-			return &m_player[i];
-#endif
 	}
 	return &m_player[0];
 }
